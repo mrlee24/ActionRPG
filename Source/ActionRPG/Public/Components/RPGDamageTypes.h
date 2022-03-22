@@ -26,12 +26,12 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	AController* InstigatorController = nullptr;
 
-	UPROPERTY(Transient, BlueprintReadOnly)
 	// Actor that deals damage
+	UPROPERTY(Transient, BlueprintReadOnly)
 	AActor* InstigatorActor = nullptr;
 
-	UPROPERTY(Transient, BlueprintReadOnly)
 	// Actor that is received damage
+	UPROPERTY(Transient, BlueprintReadOnly)
 	AActor* TargetActor = nullptr;
 
 	UPROPERTY(Transient, BlueprintReadOnly)
@@ -39,6 +39,9 @@ public:
 
 	UPROPERTY(Transient, BlueprintReadOnly)
 	bool bIsFinalBlow = false;
+
+	UPROPERTY(Transient, BlueprintReadOnly)
+	FHitResult HitResult;
 };
 
 USTRUCT(BlueprintType)

@@ -54,6 +54,7 @@ void URPGDamageHandlerComponent::OnHealthAttributeChanged(const FOnAttributeChan
 
 void URPGDamageHandlerComponent::OnRep_IsAlive()
 {
+	// Override in subclass
 }
 
 void URPGDamageHandlerComponent::OnTakeDamage(const FRPGDamageEvent& damageEvent)

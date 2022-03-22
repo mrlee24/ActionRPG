@@ -103,8 +103,8 @@ void URPGAttributeSet_Health::PostGameplayEffectExecute(const FGameplayEffectMod
 		SetDamageApplied(0.f); // Reset Damage Applied!!!
 
 		// If character was alive before damage is added, handle damage
-			// This prevents damage being added to dead things and replaying death animations
-		bool wasAlive = true;
+		// This prevents damage being added to dead things and replaying death animations
+		bool bWasAlive = true;
 
 		IRPGDamagableInterface* damagableInterface = Cast<IRPGDamagableInterface>(targetActor);
 		const float newHealth = GetHealth() - localDamageDone;
@@ -112,18 +112,18 @@ void URPGAttributeSet_Health::PostGameplayEffectExecute(const FGameplayEffectMod
 
 		if (damagableInterface)
 		{
-			wasAlive = damagableInterface->Execute_IsAlive(targetActor);
-
+			bWasAlive = damagableInterface->Execute_IsAlive(targetActor);
 			FRPGDamageEvent damageEvent;
 			damageEvent.Damage = localDamageDone;
 			damageEvent.InstigatorController = sourceController;
 			damageEvent.InstigatorActor = sourceActor;
 			damageEvent.TargetActor = targetActor;
-			damageEvent.bIsFinalBlow = wasAlive && GetHealth() <= 0;
+			damageEvent.bIsFinalBlow = bWasAlive && GetHealth() <= 0;
+			damageEvent.HitResult = { MoveTemp(const_cast<FHitResult&>(*effectContextHandle.GetHitResult())) };
 			damagableInterface->OnTakeDamage(MoveTemp(damageEvent));
 		}
 
-		//if (implementsKillableInterface && wasAlive)
+		//if (implementsKillableInterface && bWasAlive)
 		//{
 		//	// TODO: Implement support for giving XP to the player here
 		//}
