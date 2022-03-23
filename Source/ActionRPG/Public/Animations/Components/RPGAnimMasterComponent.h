@@ -47,20 +47,20 @@ protected: // UActorComponent Interface
 			const float newTurnStartAngle,
 			const float newTurnStopTolerance);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetupAimOffset(const ERPGAimOffsets newAimOffsetType, const ERPGAimOffsetClamp newAimBehavior);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAimOffset(const FRotator& newAimOffset);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetLookAt(const FVector& newLookAt);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	virtual void Client_SetLooktAt(const FVector& newLookAt);
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+	virtual void NetMulticast_SetLooktAt(const FVector& newLookAt);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	virtual void Client_SetAimOffset(const FRotator& newAimOffset);
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+	virtual void NetMulticast_SetAimOffset(const FRotator& newAimOffset);
 
 #if WITH_EDITOR
 	/** Setup and register Gameplay Debug Widget. Handles input binding for activation of the widget */
@@ -176,9 +176,6 @@ protected:
 protected:
 	UPROPERTY(Transient, DuplicateTransient)
 	class APawn* OwnerPawn;
-
-	UPROPERTY(BlueprintReadOnly, Category = "RPGAnimMasterComponent")
-	class UMovementComponent* MovementComponent;
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "RPGMasterAnimComponent")

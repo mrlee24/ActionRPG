@@ -26,6 +26,7 @@
 #define GTag_GameplayCue TEXT("GameplayCue")
 #define GTag_Movement TEXT("Movement")
 #define GTag_Movement_CustomState TEXT("Movement.CustomState")
+#define GTag_Movement_CustomState_Crouch TEXT("Movement.CustomState.Crouch")
 #define GTag_Movement_CustomState_Idle TEXT("Movement.CustomState.Idle")
 #define GTag_Movement_CustomState_Jog TEXT("Movement.CustomState.Jog")
 #define GTag_Movement_CustomState_Sprint TEXT("Movement.CustomState.Sprint")

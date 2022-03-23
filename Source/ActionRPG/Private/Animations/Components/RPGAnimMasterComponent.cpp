@@ -50,12 +50,7 @@ void URPGAnimMasterComponent::BeginPlay()
 		UE_LOG(RPGMasterAnimComponentLog, Warning, TEXT("OwnerPawn is invalid"));
 		return;
 	}
-
-	if (IRPGMovableInterface* movableInterface = Cast<IRPGMovableInterface>(OwnerPawn))
-	{
-		MovementComponent = movableInterface->GetBaseMovementComponent();
-	}
-
+	
 	SetupAnimPoses(AnimPoses);
 	SetupRotation(RotationMethod, RotationSpeed, TurnStartAngle, TurnStopTolerance);
 	SetupAimOffset(AimOffsetType, AimOffsetBehavior, AimClamp, bCameraBased, AimSocketName, LookAtSocketName);
@@ -133,6 +128,11 @@ void URPGAnimMasterComponent::Server_SetAnimPoses_Implementation(const FRPGAnimP
 	}
 }
 
+bool URPGAnimMasterComponent::Server_SetAimOffset_Validate(const FRotator& newAimOffset)
+{
+	return true;
+}
+
 void URPGAnimMasterComponent::Server_SetRotation_Implementation(const ERPGRotationMethod newRotationMethod,
 	const float newRotationSpeed, const float newTurnStartAngle, const float newTurnStopTolerance)
 {
@@ -151,17 +151,28 @@ void URPGAnimMasterComponent::Server_SetupAimOffset_Implementation(const ERPGAim
 	AimOffsetBehavior = newAimBehavior;
 }
 
+bool URPGAnimMasterComponent::Server_SetupAimOffset_Validate(const ERPGAimOffsets newAimOffsetType,
+	const ERPGAimOffsetClamp newAimBehavior)
+{
+	return true;
+}
+
 void URPGAnimMasterComponent::Server_SetAimOffset_Implementation(const FRotator& newAimOffset)
 {
-	Client_SetAimOffset(newAimOffset);
+	NetMulticast_SetAimOffset(newAimOffset);
 }
 
 void URPGAnimMasterComponent::Server_SetLookAt_Implementation(const FVector& newLookAt)
 {
-	Client_SetLooktAt(newLookAt);
+	NetMulticast_SetLooktAt(newLookAt);
 }
 
-void URPGAnimMasterComponent::Client_SetLooktAt_Implementation(const FVector& newLookAt)
+bool URPGAnimMasterComponent::Server_SetLookAt_Validate(const FVector& newLookAt)
+{
+	return true;
+}
+
+void URPGAnimMasterComponent::NetMulticast_SetLooktAt_Implementation(const FVector& newLookAt)
 {
 	if (OwnerPawn && !OwnerPawn->IsLocallyControlled())
 	{
@@ -169,12 +180,22 @@ void URPGAnimMasterComponent::Client_SetLooktAt_Implementation(const FVector& ne
 	}
 }
 
-void URPGAnimMasterComponent::Client_SetAimOffset_Implementation(const FRotator& newAimOffset)
+bool URPGAnimMasterComponent::NetMulticast_SetLooktAt_Validate(const FVector& newLookAt)
+{
+	return true;
+}
+
+void URPGAnimMasterComponent::NetMulticast_SetAimOffset_Implementation(const FRotator& newAimOffset)
 {
 	if (OwnerPawn && !OwnerPawn->IsLocallyControlled())
 	{
 		AimOffset = newAimOffset;
 	}
+}
+
+bool URPGAnimMasterComponent::NetMulticast_SetAimOffset_Validate(const FRotator& newAimOffset)
+{
+	return true;
 }
 
 void URPGAnimMasterComponent::SetupDebug()
