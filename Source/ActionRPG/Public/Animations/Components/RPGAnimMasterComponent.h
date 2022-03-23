@@ -70,10 +70,10 @@ protected: // UActorComponent Interface
 	virtual void AimTick();
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "RPG|Animation|Poses")
+	UFUNCTION(BlueprintCallable, Category = "RPGAnimMasterComponent|Poses")
 	void SetupAnimPoses(const FRPGAnimPoses& newAnimPoses);
 
-	UFUNCTION(BlueprintCallable, Category = "RPG|Animation|Rotation")
+	UFUNCTION(BlueprintCallable, Category = "RPGAnimMasterComponent|Rotation")
 	void SetupRotation(
 			const ERPGRotationMethod newRotationMethod = ERPGRotationMethod::ERotateToVelocity,
 			const float newRotationSpeed = 360.f,
@@ -82,7 +82,7 @@ public:
 			const bool newbInterpRotation = true,
 			const float newRotationInterpSpeed = 10.f);
 
-	UFUNCTION(BlueprintCallable, Category = "RPG|Animation|Rotation")
+	UFUNCTION(BlueprintCallable, Category = "RPGAnimMasterComponent|Rotation")
 	void SetupAimOffset(
 			const ERPGAimOffsets newAimOffsetType = ERPGAimOffsets::ELook,
 			const ERPGAimOffsetClamp newAimOffsetBehavior = ERPGAimOffsetClamp::ENearest,
@@ -91,7 +91,7 @@ public:
 			const FName newAimSocketName = "hand_r",
 			const FName newLookAtSocketName = "head");
 
-	UFUNCTION(BlueprintCallable, Category = "RPG|Animation|Rotation")
+	UFUNCTION(BlueprintCallable, Category = "RPGAnimMasterComponent|Rotation")
 	bool SetActorRotation(const FRotator& targetRotation, const bool bUseInterpRotation, const float interpSpeed) const;
 
 private:
@@ -103,73 +103,73 @@ public:
 	FRPGAnimPosesChangedNativeDelegate& GetAnimPosesNativeDelegate();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = "OnRep_AnimPoses", Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = "OnRep_AnimPoses", Category = "RPGAnimMasterComponent|Setup")
 	FRPGAnimPoses AnimPoses;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
 	ERPGRotationMethod RotationMethod = ERPGRotationMethod::ERotateToVelocity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float RotationSpeed = 360.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float TurnStartAngle = 90.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float TurnStopTolerance = 1.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	uint8 bInterpRotation : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float RotationInterpSpeed = 10.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	ERPGAimOffsets AimOffsetType = ERPGAimOffsets::ELook;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	ERPGAimOffsetClamp AimOffsetBehavior = ERPGAimOffsetClamp::ENearest;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
 	float AimClamp = 135.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
 	uint8 bCameraBased : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
 	FName AimSocketName = "hand_r";
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
 	FName LookAtSocketName = "Spine_03";
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Runtime")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Runtime")
 	FRotator AimOffset;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Runtime")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Runtime")
 	FVector LookAtLocation;
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Debug")
 	uint8 bDebug : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPG|Animation|Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Debug")
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECollisionChannel::ECC_Visibility;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AGR|Debug")
+	UPROPERTY(EditDefaultsOnly, Category = "RPGAnimMasterComponent|Debug")
 	// Color of the line drawn to display when the starting point is LookAtSocket.
 	FColor LookAtLineColor;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AGR|Debug")
+	UPROPERTY(EditDefaultsOnly, Category = "RPGAnimMasterComponent|Debug")
 	// Color of the line drawn to display when the starting point is AimSocket.
 	FColor AimLineColor;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AGR|Debug")
+	UPROPERTY(EditDefaultsOnly, Category = "RPGAnimMasterComponent|Debug")
 	bool bLinePersists;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AGR|Debug")
+	UPROPERTY(EditDefaultsOnly, Category = "RPGAnimMasterComponent|Debug")
 	float LineThickness;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AGR|Debug")
+	UPROPERTY(EditDefaultsOnly, Category = "RPGAnimMasterComponent|Debug")
 	float LineLifetime;
 #endif
 
@@ -177,7 +177,7 @@ protected:
 	UPROPERTY(Transient, DuplicateTransient)
 	class APawn* OwnerPawn;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Pawn")
+	UPROPERTY(BlueprintReadOnly, Category = "RPGAnimMasterComponent")
 	class UMovementComponent* MovementComponent;
 
 public:
