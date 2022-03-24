@@ -22,7 +22,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:
+public: // UCharacterMovementComponent Interface
 	virtual float GetMaxSpeed() const override;
 
 public:

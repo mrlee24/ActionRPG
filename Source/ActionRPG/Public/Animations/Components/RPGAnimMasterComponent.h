@@ -10,7 +10,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(RPGMasterAnimComponentLog, Log, All);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(ActionRPG), meta=(BlueprintSpawnableComponent) )
 class ACTIONRPG_API URPGAnimMasterComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -21,15 +21,13 @@ public:
 
 protected: // UActorComponent Interface
 	virtual void BeginPlay() override;
+	virtual void TickComponent(const float deltaTime, const ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 	virtual void InitComponent();
 	void NotifyAnimPoses(const FRPGAnimPoses& newValue);
-
-	virtual void HandleRotationSpeedChanged();
-	virtual void HandleRotationMethodChanged();
-
+	
 	UFUNCTION()
 	void OnRep_AnimPoses(const FRPGAnimPoses& newValue);
 
@@ -69,8 +67,19 @@ protected:
 	virtual void SetupDebug();
 #endif
 
+private:
+	void HandleRotationSpeedChanged();
+	void HandleRotationMethodChanged();
+	void LookAtIfPlayerControlled();
+	void LookAtWithoutCamera();
 	virtual void AimTick();
+	virtual void TurnInPlaceTick();
 
+#if WITH_EDITOR
+	void DrawLookAtLocationDebug(const FVector& lookAtSocketLocation,
+		const FVector& aimSocketLocation, const FVector& end);
+#endif
+	
 public:
 	UFUNCTION(BlueprintCallable, Category = "RPGAnimMasterComponent|Poses")
 	void SetupAnimPoses(const FRPGAnimPoses& newAnimPoses);
@@ -105,49 +114,49 @@ public:
 	FRPGAnimPosesChangedNativeDelegate& GetAnimPosesNativeDelegate();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = "OnRep_AnimPoses", Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = "OnRep_AnimPoses", Category = "RPGAnimMasterComponent|Setup")
 	FRPGAnimPoses AnimPoses;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Setup")
 	ERPGRotationMethod RotationMethod = ERPGRotationMethod::ERotateToVelocity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float RotationSpeed = 360.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float TurnStartAngle = 90.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float TurnStopTolerance = 1.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	uint8 bInterpRotation : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	float RotationInterpSpeed = 10.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	ERPGAimOffsets AimOffsetType = ERPGAimOffsets::ELook;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = "RPGAnimMasterComponent|Setup")
 	ERPGAimOffsetClamp AimOffsetBehavior = ERPGAimOffsetClamp::ENearest;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Setup")
 	float AimClamp = 135.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Setup")
 	uint8 bCameraBased : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Setup")
 	FName AimSocketName = "hand_r";
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Setup")
 	FName LookAtSocketName = "Spine_03";
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Runtime")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Runtime")
 	FRotator AimOffset;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RPGAnimMasterComponent|Runtime")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "RPGAnimMasterComponent|Runtime")
 	FVector LookAtLocation;
 
 #if WITH_EDITORONLY_DATA
@@ -185,4 +194,8 @@ public:
 
 protected:
 	FRPGAnimPosesChangedNativeDelegate OnAnimPosesChangedNativeDelegate;
+
+private:
+	// Cache this for quick access not going to cache every frame
+	TScriptInterface<class IRPGAnimInstanceInterface> animInstanceInterface;
 };

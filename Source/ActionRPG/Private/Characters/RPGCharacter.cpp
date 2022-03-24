@@ -37,6 +37,11 @@ void ARPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+USkeletalMeshComponent* ARPGCharacter::GetSkeletalMeshComponent() const
+{
+	return GetMesh();
+}
+
 void ARPGCharacter::HandleLocomotionStateChanged(const FRPGLocomotionState& newLocomotionState)
 {
 	RPGCharacterMovementComponent->CurrentLocomotionState = newLocomotionState;

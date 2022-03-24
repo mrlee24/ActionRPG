@@ -30,6 +30,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private: // IRPGAnimInstanceInterface
+	virtual class USkeletalMeshComponent* GetSkeletalMeshComponent() const override;
+
+private:
 	void HandleLocomotionStateChanged(const struct FRPGLocomotionState& newLocomotionState);
 	
 protected:

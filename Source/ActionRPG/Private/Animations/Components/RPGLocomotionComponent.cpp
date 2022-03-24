@@ -24,7 +24,6 @@ void URPGLocomotionComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
 	
-	bUseCharacterInstance = false;
 	DefaultLocomotionStateName = GTag_Movement_CustomState_Jog;
 	
 	LocomotionStates.Add(GTag_Movement_CustomState_Crouch,
@@ -56,19 +55,9 @@ void URPGLocomotionComponent::InitComponent()
 	}, .2f, false);
 }
 
-void URPGLocomotionComponent::SetUseCharacterInstance(const bool useCharacterInstance)
-{
-	bUseCharacterInstance = useCharacterInstance;
-}
-
 FRPGLocomotionStateNativeChanged& URPGLocomotionComponent::GetLocomotionStateNativeChanged()
 {
 	return LocomotionStateNativeChangedDelegate;
-}
-
-const FGameplayTag& URPGLocomotionComponent::GetCurrentLocomotionStateTag() const
-{
-	return CurrentLocomotionState.State;
 }
 
 void URPGLocomotionComponent::SetupLocomotionState(const FName& locomotionStateName)
@@ -82,6 +71,11 @@ void URPGLocomotionComponent::SetupLocomotionState(const FName& locomotionStateN
 	}
 }
 
+const FGameplayTag& URPGLocomotionComponent::GetCurrentLocomotionStateTag() const
+{
+	return CurrentLocomotionState.State;
+}
+
 float URPGLocomotionComponent::GetMaxSpeedByStateName(const FName& locomotionStateName) const
 {
 	const FRPGLocomotionState* locomotionState = LocomotionStates.Find(locomotionStateName);
@@ -91,6 +85,11 @@ float URPGLocomotionComponent::GetMaxSpeedByStateName(const FName& locomotionSta
 	}
 
 	return 0.f;
+}
+
+bool URPGLocomotionComponent::IsLocomotionStateSet(const FName& locomotionStateName) const
+{
+	return CurrentLocomotionState.State.GetTagName().IsEqual(locomotionStateName);
 }
 
 void URPGLocomotionComponent::Server_SetLocomotionState_Implementation(const FRPGLocomotionState& newLocomotionState)

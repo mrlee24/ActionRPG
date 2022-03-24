@@ -24,4 +24,7 @@ class ACTIONRPG_API IRPGMovableInterface
 public:
 	UFUNCTION(BlueprintCallable, Category = "IRPGMovableInterface")
 	virtual class UMovementComponent* GetBaseMovementComponent() const = 0;
+
+	UFUNCTION(BlueprintCallable, Category = "IRPGMovableInterface")
+	virtual void SetRotationYawRate(const float rotationYawRate = 0.f) const = 0;
 };

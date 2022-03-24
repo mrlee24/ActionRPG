@@ -3,7 +3,10 @@
 
 #include "Animations/Components/RPGAnimMasterComponent.h"
 
+#include "DrawDebugHelpers.h"
+#include "Interfaces/RPGAnimInstanceInterface.h"
 #include "Interfaces/RPGMovableInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
@@ -13,7 +16,7 @@ URPGAnimMasterComponent::URPGAnimMasterComponent(const FObjectInitializer& objec
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 #if WITH_EDITOR
 	bDebug = false;
@@ -39,6 +42,15 @@ void URPGAnimMasterComponent::BeginPlay()
 	Super::BeginPlay();
 
 	InitComponent();
+}
+
+void URPGAnimMasterComponent::TickComponent(const float deltaTime, const ELevelTick tickType,
+	FActorComponentTickFunction* thisTickFunction)
+{
+	Super::TickComponent(deltaTime, tickType, thisTickFunction);
+
+	AimTick();
+	TurnInPlaceTick();
 }
 
 void URPGAnimMasterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -70,6 +82,8 @@ void URPGAnimMasterComponent::InitComponent()
 		return;
 	}
 	
+	animInstanceInterface = OwnerPawn;
+	
 	SetupAnimPoses(AnimPoses);
 	SetupRotation(RotationMethod, RotationSpeed, TurnStartAngle, TurnStopTolerance);
 	SetupAimOffset(AimOffsetType, AimOffsetBehavior, AimClamp, bCameraBased, AimSocketName, LookAtSocketName);
@@ -83,29 +97,6 @@ void URPGAnimMasterComponent::NotifyAnimPoses(const FRPGAnimPoses& newValue)
 {
 	OnAnimPosesChangedDynamicDelegate.Broadcast(newValue);
 	OnAnimPosesChangedNativeDelegate.Broadcast(newValue);
-}
-
-void URPGAnimMasterComponent::HandleRotationSpeedChanged()
-{
-	// Implement this in sub class
-}
-
-void URPGAnimMasterComponent::HandleRotationMethodChanged()
-{
-	switch (RotationMethod)
-	{
-	case ERPGRotationMethod::EDesiredAtAngle:
-		HandleDesiredAtAngle();
-		break;
-	case ERPGRotationMethod::EDesiredRotation:
-		HandleDesiredRotation();
-		break;
-	case ERPGRotationMethod::ERotateToVelocity:
-		HandleRotateToVelocity();
-		break;
-	default:
-		checkNoEntry();
-	}
 }
 
 void URPGAnimMasterComponent::OnRep_AnimPoses(const FRPGAnimPoses& newValue)
@@ -208,9 +199,132 @@ void URPGAnimMasterComponent::SetupDebug()
 	// Implement this in sub class
 }
 
+void URPGAnimMasterComponent::HandleRotationSpeedChanged()
+{
+	if (OwnerPawn)
+	{
+		if (IRPGMovableInterface* movableInterface = Cast<IRPGMovableInterface>(OwnerPawn))
+		{
+			movableInterface->SetRotationYawRate(RotationSpeed);
+		}
+	}
+}
+
+void URPGAnimMasterComponent::HandleRotationMethodChanged()
+{
+	switch (RotationMethod)
+	{
+	case ERPGRotationMethod::EDesiredAtAngle:
+		HandleDesiredAtAngle();
+		break;
+	case ERPGRotationMethod::EDesiredRotation:
+		HandleDesiredRotation();
+		break;
+	case ERPGRotationMethod::ERotateToVelocity:
+		HandleRotateToVelocity();
+		break;
+	default:
+		checkNoEntry();
+	}
+}
+
+void URPGAnimMasterComponent::LookAtIfPlayerControlled()
+{
+	APlayerCameraManager* playerCam = UGameplayStatics::GetPlayerCameraManager(this, 0);
+	if (!IsValid(playerCam))
+	{
+		return;
+	}
+
+	FHitResult hitResult;
+	const FVector start = playerCam->GetCameraLocation();
+	const FVector end = playerCam->GetCameraLocation();
+
+	FCollisionQueryParams queryParams;
+	TArray<AActor*> ignoredActors;
+	OwnerPawn->GetAttachedActors(ignoredActors, true);
+	queryParams.AddIgnoredActors(ignoredActors);
+	queryParams.AddIgnoredActor(OwnerPawn);
+	queryParams.bTraceComplex = true;
+#if WITH_EDITOR
+	queryParams.bDebugQuery = bDebug;
+#endif
+
+	const FName socketName = (AimOffsetType == ERPGAimOffsets::EAim) ?
+		AimSocketName : LookAtSocketName;
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(hitResult, start, end, TraceChannel, queryParams);
+	if (animInstanceInterface)
+	{
+		LookAtLocation = (bHit) ? hitResult.ImpactPoint : hitResult.TraceEnd; 	
+		Server_SetLookAt(LookAtLocation);
+		Server_SetAimOffset(AimOffset);
+		AimOffset = UKismetMathLibrary::FindLookAtRotation(
+			animInstanceInterface->GetSkeletalMeshComponent()->GetSocketLocation(socketName),
+			LookAtLocation);
+#if WITH_EDITOR
+		DrawLookAtLocationDebug(animInstanceInterface->GetSocketLocation(LookAtSocketName),
+	animInstanceInterface->GetSocketLocation(AimSocketName), LookAtLocation);
+#endif
+	}
+}
+
+void URPGAnimMasterComponent::LookAtWithoutCamera()
+{
+	FHitResult hitResult;
+	const float offsetStart = 10000.f;
+
+	FCollisionQueryParams queryParams;
+	queryParams.bTraceComplex = true;
+#if WITH_EDITOR
+	queryParams.bDebugQuery = bDebug;
+#endif
+
+	TArray<AActor*> ignoredActors;
+	OwnerPawn->GetAttachedActors(ignoredActors, true);
+	queryParams.AddIgnoredActors(ignoredActors);
+	queryParams.AddIgnoredActor(OwnerPawn);
+
+	if (animInstanceInterface)
+	{
+		const FVector& start = animInstanceInterface->GetSocketLocation(LookAtSocketName);
+		const FVector& end = UKismetMathLibrary::GetForwardVector(OwnerPawn->GetControlRotation() * offsetStart) + start;
+		const bool bHit = GetWorld()->LineTraceSingleByChannel(hitResult, start, end, TraceChannel, queryParams);
+		LookAtLocation = (bHit) ? hitResult.ImpactPoint : hitResult.TraceEnd;
+#if WITH_EDITOR
+		DrawLookAtLocationDebug(animInstanceInterface->GetSocketLocation(LookAtSocketName),
+	animInstanceInterface->GetSocketLocation(AimSocketName), LookAtLocation);
+#endif
+	}
+}
+
 void URPGAnimMasterComponent::AimTick()
 {
 	// Implement this in subclass
+	if (OwnerPawn && OwnerPawn->IsLocallyControlled())
+	{
+		if (bCameraBased)
+		{
+			LookAtIfPlayerControlled();
+		}
+		else
+		{
+			AimOffset = OwnerPawn->GetControlRotation();
+			Server_SetAimOffset(AimOffset);
+			LookAtWithoutCamera();
+		}
+	}
+}
+
+void URPGAnimMasterComponent::TurnInPlaceTick()
+{
+	HandleDesiredAtAngle();
+}
+
+void URPGAnimMasterComponent::DrawLookAtLocationDebug(const FVector& lookAtSocketLocation,
+                                                      const FVector& aimSocketLocation, const FVector& end)
+{
+	DrawDebugLine(GetWorld(), lookAtSocketLocation, end, LookAtLineColor, bLinePersists, LineLifetime, 0, LineThickness);
+	DrawDebugLine(GetWorld(), aimSocketLocation, end, AimLineColor, bLinePersists, LineLifetime, 0, LineThickness);
 }
 
 void URPGAnimMasterComponent::SetupAnimPoses(const FRPGAnimPoses& newAnimPoses)
