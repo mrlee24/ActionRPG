@@ -26,10 +26,10 @@ protected: // UActorComponent Interface
 	
 protected:
 	virtual void InitComponent();
-	void NotifyAnimPoses(const FRPGAnimPoses& newValue);
+	void NotifyAnimPoses(const FRPGAnimPoses& newValue) const;
 	
 	UFUNCTION()
-	void OnRep_AnimPoses(const FRPGAnimPoses& newValue);
+	void OnRep_AnimPoses(const FRPGAnimPoses& newValue) const;
 
 	UFUNCTION()
 	void OnRep_RotationMethod();

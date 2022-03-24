@@ -27,4 +27,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "IRPGMovableInterface")
 	virtual void SetRotationYawRate(const float rotationYawRate = 0.f) const = 0;
+
+	UFUNCTION(BlueprintCallable, Category = "IRPGMovableInterface")
+	virtual float GetScaledCapsuleHalfHeight() const = 0;
 };

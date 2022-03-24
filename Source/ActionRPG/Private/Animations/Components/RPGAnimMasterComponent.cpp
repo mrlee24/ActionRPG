@@ -93,13 +93,13 @@ void URPGAnimMasterComponent::InitComponent()
 #endif
 }
 
-void URPGAnimMasterComponent::NotifyAnimPoses(const FRPGAnimPoses& newValue)
+void URPGAnimMasterComponent::NotifyAnimPoses(const FRPGAnimPoses& newValue) const
 {
 	OnAnimPosesChangedDynamicDelegate.Broadcast(newValue);
 	OnAnimPosesChangedNativeDelegate.Broadcast(newValue);
 }
 
-void URPGAnimMasterComponent::OnRep_AnimPoses(const FRPGAnimPoses& newValue)
+void URPGAnimMasterComponent::OnRep_AnimPoses(const FRPGAnimPoses& newValue) const
 {
 	NotifyAnimPoses(newValue);
 }
