@@ -18,9 +18,6 @@ URPGLocomotionComponent::URPGLocomotionComponent(const FObjectInitializer& objec
 void URPGLocomotionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	CurrentLocomotionState = *LocomotionStates.Find(DefaultLocomotionStateName);
 }
 
 void URPGLocomotionComponent::PostInitProperties()
@@ -33,9 +30,11 @@ void URPGLocomotionComponent::PostInitProperties()
 	LocomotionStates.Add(GTag_Movement_CustomState_Crouch,
 		FRPGLocomotionState(FGameplayTag::RequestGameplayTag(GTag_Movement_CustomState_Crouch), 150.f));
 	LocomotionStates.Add(GTag_Movement_CustomState_Walk,
-	FRPGLocomotionState(FGameplayTag::RequestGameplayTag(GTag_Movement_CustomState_Walk), 180.f));
+		FRPGLocomotionState(FGameplayTag::RequestGameplayTag(GTag_Movement_CustomState_Walk), 180.f));
 	LocomotionStates.Add(GTag_Movement_CustomState_Jog,
 		FRPGLocomotionState(FGameplayTag::RequestGameplayTag(GTag_Movement_CustomState_Jog), 350.f));
+	LocomotionStates.Add(GTag_Movement_CustomState_Sprint,
+		FRPGLocomotionState(FGameplayTag::RequestGameplayTag(GTag_Movement_CustomState_Sprint), 550.f));
 }
 
 void URPGLocomotionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -43,6 +42,18 @@ void URPGLocomotionComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(URPGLocomotionComponent, CurrentLocomotionState);
+}
+
+void URPGLocomotionComponent::InitComponent()
+{
+	Super::InitComponent();
+	
+	// Giving a small delay to SetupLocomotionState
+	FTimerHandle delayHandle;
+	GetWorld()->GetTimerManager().SetTimer(delayHandle, [&]()
+	{
+		SetupLocomotionState(DefaultLocomotionStateName);
+	}, .2f, false);
 }
 
 void URPGLocomotionComponent::SetUseCharacterInstance(const bool useCharacterInstance)
@@ -60,9 +71,15 @@ const FGameplayTag& URPGLocomotionComponent::GetCurrentLocomotionStateTag() cons
 	return CurrentLocomotionState.State;
 }
 
-void URPGLocomotionComponent::SetupCurrentLocomotionState(const FName& locomotionStateName)
+void URPGLocomotionComponent::SetupLocomotionState(const FName& locomotionStateName)
 {
-	CurrentLocomotionState = *LocomotionStates.Find(locomotionStateName);
+	const FRPGLocomotionState* newLocomotionState = LocomotionStates.Find(locomotionStateName);
+	if (newLocomotionState)
+	{
+		CurrentLocomotionState = *newLocomotionState;
+		NotifyLocomotionState(CurrentLocomotionState);
+		Server_SetLocomotionState(CurrentLocomotionState);
+	}
 }
 
 float URPGLocomotionComponent::GetMaxSpeedByStateName(const FName& locomotionStateName) const
@@ -76,16 +93,17 @@ float URPGLocomotionComponent::GetMaxSpeedByStateName(const FName& locomotionSta
 	return 0.f;
 }
 
-void URPGLocomotionComponent::Server_SetLocomotionState_Implementation(const FName& locomotionStateName)
+void URPGLocomotionComponent::Server_SetLocomotionState_Implementation(const FRPGLocomotionState& newLocomotionState)
 {
-	const FRPGLocomotionState* newLocomotionState = LocomotionStates.Find(locomotionStateName);
-	if (newLocomotionState)
+	CurrentLocomotionState = newLocomotionState;
+	
+	if (!OwnerPawn->IsLocallyControlled())
 	{
-		CurrentLocomotionState = *newLocomotionState;
+		OnRep_LocomotionState(newLocomotionState);
 	}
 }
 
-bool URPGLocomotionComponent::Server_SetLocomotionState_Validate(const FName& locomotionStateName)
+bool URPGLocomotionComponent::Server_SetLocomotionState_Validate(const FRPGLocomotionState& newLocomotionState)
 {
 	return true;
 }

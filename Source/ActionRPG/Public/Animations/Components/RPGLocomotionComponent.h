@@ -72,6 +72,9 @@ protected: // UActorComponent Interface
 	virtual void BeginPlay() override;
 	virtual void PostInitProperties() override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
+protected: // URPGAnimMasterComponent
+	virtual void InitComponent() override;
 	
 public:
 	void SetUseCharacterInstance(const bool useCharacterInstance = false);
@@ -82,14 +85,14 @@ public:
 	const FGameplayTag& GetCurrentLocomotionStateTag() const;
 
 	UFUNCTION(BlueprintCallable, Category = "RPGLocomotionComponent|Locomotion")
-	void SetupCurrentLocomotionState(const FName& locomotionStateName);
+	void SetupLocomotionState(const FName& locomotionStateName);
 
 	UFUNCTION(BlueprintPure, Category = "RPGLocomotionComponent|Locomotion")
 	float GetMaxSpeedByStateName(const FName& locomotionStateName) const;
 
 private:
 	UFUNCTION(Server, WithValidation, Reliable)
-	void Server_SetLocomotionState(const FName& locomotionStateName);
+	void Server_SetLocomotionState(const FRPGLocomotionState& newLocomotionState);
 	
 private:
 	void NotifyLocomotionState(const FRPGLocomotionState& newLocomotionState);

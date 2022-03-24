@@ -24,6 +24,9 @@ class ACTIONRPG_API URPGGameplayBPLibrary : public UObject
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "Settings")
+	UFUNCTION(BlueprintPure, Category = "RPGGameplayBPLibrary|Settings")
 	static FGameplayTagContainer RequestAllGameplayTags(bool bOnlyIncludeDictionaryTags);
+
+	UFUNCTION(BlueprintPure, Category = "RPGGameplayBPLibrary|Preview")
+	static bool IsRunningGameplayWorld(const UWorld* world);
 };

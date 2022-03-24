@@ -38,6 +38,25 @@ void URPGAnimMasterComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitComponent();
+}
+
+void URPGAnimMasterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, AnimPoses);
+	DOREPLIFETIME(ThisClass, RotationMethod);
+	DOREPLIFETIME(ThisClass, RotationSpeed);
+	DOREPLIFETIME(ThisClass, TurnStartAngle);
+	DOREPLIFETIME(ThisClass, TurnStopTolerance);
+	DOREPLIFETIME(ThisClass, bInterpRotation);
+	DOREPLIFETIME(ThisClass, RotationInterpSpeed);
+	DOREPLIFETIME(ThisClass, AimOffsetType);
+	DOREPLIFETIME(ThisClass, AimOffsetBehavior);
+}
+
+void URPGAnimMasterComponent::InitComponent()
+{
 	if (!GetOwner())
 	{
 		UE_LOG(RPGMasterAnimComponentLog, Warning, TEXT("This component has not been attached to any actors"));
@@ -58,20 +77,6 @@ void URPGAnimMasterComponent::BeginPlay()
 #if WITH_EDITOR
 	SetupDebug();
 #endif
-}
-
-void URPGAnimMasterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass, AnimPoses);
-	DOREPLIFETIME(ThisClass, RotationMethod);
-	DOREPLIFETIME(ThisClass, RotationSpeed);
-	DOREPLIFETIME(ThisClass, TurnStartAngle);
-	DOREPLIFETIME(ThisClass, TurnStopTolerance);
-	DOREPLIFETIME(ThisClass, bInterpRotation);
-	DOREPLIFETIME(ThisClass, RotationInterpSpeed);
-	DOREPLIFETIME(ThisClass, AimOffsetType);
-	DOREPLIFETIME(ThisClass, AimOffsetBehavior);
 }
 
 void URPGAnimMasterComponent::NotifyAnimPoses(const FRPGAnimPoses& newValue)

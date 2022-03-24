@@ -22,7 +22,9 @@ public:
 protected: // UActorComponent Interface
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	protected:
+	
+protected:
+	virtual void InitComponent();
 	void NotifyAnimPoses(const FRPGAnimPoses& newValue);
 
 	virtual void HandleRotationSpeedChanged();
@@ -79,7 +81,7 @@ public:
 			const float newRotationSpeed = 360.f,
 			const float newTurnStartAngle = 90.f,
 			const float newTurnStopTolerance = 5.f,
-			const bool newbInterpRotation = true,
+			const bool newInterpRotation = true,
 			const float newRotationInterpSpeed = 10.f);
 
 	UFUNCTION(BlueprintCallable, Category = "RPGAnimMasterComponent|Rotation")
